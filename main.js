@@ -5,7 +5,7 @@ var
   request = require('request'),
   stream = require('stream'),
   noop = function(){}
-function ZohoReports(opts) {
+function ZohoReports (opts) {
   if (this.constructor !== ZohoReports)
     return new ZohoReports(opts)
   if (!opts.user || !opts.authtoken || !opts.db)
@@ -21,7 +21,7 @@ ZohoReports.prototype.buildUrl = buildUrl
 ZohoReports.prototype.buildCriteria = buildCriteria
 ZohoReports.prototype.handleError = handleError
 
-function insert(table, data, done) {
+function insert (table, data, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (!data)
@@ -42,7 +42,7 @@ function insert(table, data, done) {
   request(opts, self.handleError(done))
 }
 
-function update(table, where, data, done) {
+function update (table, where, data, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (arguments.length === 3) {
@@ -69,7 +69,7 @@ function update(table, where, data, done) {
   request(opts, self.handleError(done))
 }
 
-function deleteFn(table, where, done) {
+function deleteFn (table, where, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (typeof arguments[1] == 'function') {
@@ -90,7 +90,7 @@ function deleteFn(table, where, done) {
   request(opts, self.handleError(done))
 }
 
-function importFn(table, data, done) {
+function importFn (table, data, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (!data)
@@ -111,7 +111,7 @@ function importFn(table, data, done) {
       request(opts, self.handleError(done))
 }
 
-function buildUrl(opts) {
+function buildUrl (opts) {
   // https://reportsapi.zoho.com/api/abc@zoho.com/EmployeeDB/EmployeeDetails?
   //  ZOHO_ACTION=ADDROW&
   //  ZOHO_OUTPUT_FORMAT=XML&
@@ -129,7 +129,7 @@ function buildUrl(opts) {
     'authtoken=' + self.opts.authtoken
 }
 
-function buildCriteria(where) {
+function buildCriteria (where) {
   // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
   //  https://zohoreportsapi.wiki.zoho.com/Applying-Filters.html
   if (!Object.keys(where).length)
@@ -144,7 +144,7 @@ function buildCriteria(where) {
   }
 }
 
-function buildDataImport(data) {
+function buildDataImport (data) {
   var type, filename, output, file
   if (isReadableStream(data)) {
     file = data
@@ -176,7 +176,7 @@ function buildDataImport(data) {
   return output
 }
 
-function handleError(done) {
+function handleError (done) {
   return function (err, res, body) {
     var output
     if (err) return done(err)
@@ -197,7 +197,7 @@ function handleError(done) {
 
 module.exports = ZohoReports
 
-function getZohoAction(action) {
+function getZohoAction (action) {
   var actions = {
     insert: 'ADDROW',
     update: 'UPDATE',
@@ -207,7 +207,7 @@ function getZohoAction(action) {
   return actions[action]
 }
 
-function isReadableStream(obj) {
+function isReadableStream (obj) {
   return obj instanceof stream.Stream &&
     typeof (obj._read === 'function') &&
     typeof (obj._readableState === 'object')
