@@ -1,12 +1,13 @@
 require('dotenv').load()
 var
   expect = require('expect.js'),
+  fs = require('fs'),
+  ZohoReports = require('./main'),
   ZOHO_OPTS = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
     db: process.env.ZOHO_DB
-  },
-  ZohoReports = require('./main')
+  }
 
 describe('zoho-report module', function () {
   this.timeout(10 * 1000)
@@ -33,7 +34,7 @@ describe('zoho-report module', function () {
     it('throws error when `data` parameter is not provided', function () {
       expect(zoho.insert).withArgs('testtable').to.throwError()
     })
-    it.skip('doesn\'t throw error when `done` parameter is not provided', function () {
+    it('doesn\'t throw error when `done` parameter is not provided', function () {
       var data = {fname: 'tester', lname: 'tester'}
       function test() {
         zoho.insert('testtable', data)
@@ -41,7 +42,7 @@ describe('zoho-report module', function () {
       expect(test).to.not.throwError()
       // expect(zoho.insert).withArgs('testtable', data).to.not.throwError()
     })
-    it.skip('insert row', function (done) {
+    it('insert row', function (done) {
       var data = {fname: 'tester', lname: 'tester'}
       zoho.insert(process.env.ZOHO_TABLE, data, done)
     })
@@ -57,14 +58,14 @@ describe('zoho-report module', function () {
     it('throws error when `data` parameter is not provided', function () {
       expect(zoho.update).withArgs('testtable').to.throwError()
     })
-    it.skip('doesn\'t throw error when `where` parameter is not provided', function (done) {
+    it('doesn\'t throw error when `where` parameter is not provided', function (done) {
       var data = {id: 5}
       function test() {
         zoho.update('testtable', data, done)
       }
       expect(test).to.not.throwError()
     })
-    it.skip('update row', function (done) {
+    it('update row', function (done) {
       zoho.update(process.env.ZOHO_TABLE, where, data, done)
     })
   })
@@ -75,14 +76,41 @@ describe('zoho-report module', function () {
     it('throws error when `table` parameter is not provided', function () {
       expect(zoho.delete).withArgs().to.throwError()
     })
-    it.skip('doesn\'t throw error when `where` parameter is not provided', function (done) {
+    it('doesn\'t throw error when `where` parameter is not provided', function (done) {
       function test() {
         zoho.delete('testtable', done)
       }
       expect(test).to.not.throwError()
     })
-    it.skip('delete row', function (done) {
+    it('delete row', function (done) {
       zoho.delete(process.env.ZOHO_TABLE, where, done)
+    })
+  })
+  describe('importing bulk data', function () {
+    var
+      zoho = new ZohoReports(ZOHO_OPTS),
+      json = [
+        {fname: 'tester', lname: 'tester', id: 1},
+        {fname: 'tester', lname: 'tester', id: 2},
+        {fname: 'tester', lname: 'tester', id: 3},
+      ],
+      csv = 'fname,lname,id\ntester,tester,4\ntester,tester,5\ntester,tester,6',
+      jsonStream = fs.createReadStream(__dirname + '/data.json'),
+      csvStream = fs.createReadStream(__dirname + '/data.csv')
+    it('throws error when `table` parameter is not provided', function () {
+      expect(zoho.import).withArgs().to.throwError()
+    })
+    it('import bulk data using json', function (done) {
+      zoho.import(process.env.ZOHO_TABLE, json, done)
+    })
+    it('import bulk data using csv', function (done) {
+      zoho.import(process.env.ZOHO_TABLE, csv, done)
+    })
+    it('import bulk data using stream csv', function (done) {
+      zoho.import(process.env.ZOHO_TABLE, csvStream, done)
+    })
+    it('import bulk data using stream json', function (done) {
+      zoho.import(process.env.ZOHO_TABLE, jsonStream, done)
     })
   })
   describe('handle error', function () {
@@ -123,10 +151,10 @@ describe('zoho-report module', function () {
 
     })
   })
-  describe.skip('url building', function () {
+  describe('url building', function () {
     // @TODO test url building for complex data
   })
-  describe.skip('criteria building', function () {
+  describe('criteria building', function () {
     // @TODO test criteria building for complex filter
   })
 })

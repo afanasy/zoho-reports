@@ -1,9 +1,10 @@
 var
   ROOT_URL = 'https://reportsapi.zoho.com',
   _ = require('underscore'),
+  path = require('path'),
   request = require('request'),
+  stream = require('stream'),
   noop = function(){}
-
 function ZohoReports(opts) {
   if (this.constructor !== ZohoReports)
     return new ZohoReports(opts)
@@ -15,6 +16,7 @@ function ZohoReports(opts) {
 ZohoReports.prototype.insert = insert
 ZohoReports.prototype.update = update
 ZohoReports.prototype.delete = deleteFn
+ZohoReports.prototype.import = importFn
 ZohoReports.prototype.buildUrl = buildUrl
 ZohoReports.prototype.buildCriteria = buildCriteria
 ZohoReports.prototype.handleError = handleError
@@ -88,6 +90,26 @@ function deleteFn(table, where, done) {
   request(opts, self.handleError(done))
 }
 
+function importFn(table, data, done) {
+  if (!table)
+    return done(new Error('You need to pass `table` name parameter.'))
+  if (!data)
+    return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
+  if (!done)
+    done = noop
+    var
+      self = this,
+      url = self.buildUrl({
+        table: table,
+        action: 'import'
+      }),
+      opts = {
+        url: url,
+        formData: buildDataImport(data),
+        method: 'post'
+      }
+      request(opts, self.handleError(done))
+}
 
 function buildUrl(opts) {
   // https://reportsapi.zoho.com/api/abc@zoho.com/EmployeeDB/EmployeeDetails?
@@ -107,7 +129,6 @@ function buildUrl(opts) {
     'authtoken=' + self.opts.authtoken
 }
 
-
 function buildCriteria(where) {
   // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
   //  https://zohoreportsapi.wiki.zoho.com/Applying-Filters.html
@@ -121,6 +142,38 @@ function buildCriteria(where) {
   return {
     ZOHO_CRITERIA: criteria
   }
+}
+
+function buildDataImport(data) {
+  var type, filename, output, file
+  if (isReadableStream(data)) {
+    file = data
+    type = path.extname(data.path) === '.csv' ? 'CSV' : 'JSON'
+  } else {
+    if (_.isArray(data)) {
+      data = JSON.stringify(data)
+      type = 'JSON'
+      filename = 'data.json'
+    } else if (_.isString(data)) {
+      type = 'CSV'
+      filename = 'data.csv'
+    }
+    file = {
+      value: new Buffer(data),
+      options: {
+        filename: filename
+      }
+    }
+  }
+  output = {
+    ZOHO_FILE: file,
+    ZOHO_IMPORT_FILETYPE: type,
+    ZOHO_IMPORT_TYPE: 'APPEND',
+    ZOHO_AUTO_IDENTIFY: 'true',
+    ZOHO_CREATE_TABLE: 'false',
+    ZOHO_ON_IMPORT_ERROR: 'ABORT',
+  }
+  return output
 }
 
 function handleError(done) {
@@ -148,7 +201,14 @@ function getZohoAction(action) {
   var actions = {
     insert: 'ADDROW',
     update: 'UPDATE',
-    delete: 'DELETE'
+    delete: 'DELETE',
+    import: 'IMPORT'
   }
   return actions[action]
+}
+
+function isReadableStream(obj) {
+  return obj instanceof stream.Stream &&
+    typeof (obj._read === 'function') &&
+    typeof (obj._readableState === 'object')
 }
