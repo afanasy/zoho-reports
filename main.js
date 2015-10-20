@@ -1,7 +1,8 @@
 var
   ROOT_URL = 'https://reportsapi.zoho.com',
   _ = require('underscore'),
-  request = require('request')
+  request = require('request'),
+  noop = function(){}
 
 function ZohoReports(opts) {
   if (this.constructor !== ZohoReports)
@@ -13,6 +14,7 @@ function ZohoReports(opts) {
 
 ZohoReports.prototype.insert = insert
 ZohoReports.prototype.update = update
+ZohoReports.prototype.delete = deleteFn
 ZohoReports.prototype.buildUrl = buildUrl
 ZohoReports.prototype.buildCriteria = buildCriteria
 ZohoReports.prototype.handleError = handleError
@@ -23,7 +25,7 @@ function insert(table, data, done) {
   if (!data)
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
-    done = function(){}
+    done = noop
   var
     self = this,
     url = self.buildUrl({
@@ -49,7 +51,7 @@ function update(table, where, data, done) {
   if (!data)
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
-    done = function(){}
+    done = noop
   data = _.extend(buildCriteria(where), data)
   var
     self = this,
@@ -64,6 +66,28 @@ function update(table, where, data, done) {
     }
   request(opts, self.handleError(done))
 }
+
+function deleteFn(table, where, done) {
+  if (!table)
+    return done(new Error('You need to pass `table` name parameter.'))
+  if (typeof arguments[1] == 'function') {
+    done = where
+    where = {}
+  }
+  var
+    self = this,
+    url = self.buildUrl({
+      table: table,
+      action: 'delete'
+    }),
+    opts = {
+      url: url,
+      form: buildCriteria(where),
+      method: 'post'
+    }
+  request(opts, self.handleError(done))
+}
+
 
 function buildUrl(opts) {
   // https://reportsapi.zoho.com/api/abc@zoho.com/EmployeeDB/EmployeeDetails?
@@ -123,7 +147,8 @@ module.exports = ZohoReports
 function getZohoAction(action) {
   var actions = {
     insert: 'ADDROW',
-    update: 'UPDATE'
+    update: 'UPDATE',
+    delete: 'DELETE'
   }
   return actions[action]
 }

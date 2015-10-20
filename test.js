@@ -68,6 +68,23 @@ describe('zoho-report module', function () {
       zoho.update(process.env.ZOHO_TABLE, where, data, done)
     })
   })
+  describe('row deletion', function () {
+    var
+      zoho = new ZohoReports(ZOHO_OPTS),
+      where = {fname: 'tester', lname: 'tester'}
+    it('throws error when `table` parameter is not provided', function () {
+      expect(zoho.delete).withArgs().to.throwError()
+    })
+    it.skip('doesn\'t throw error when `where` parameter is not provided', function (done) {
+      function test() {
+        zoho.delete('testtable', done)
+      }
+      expect(test).to.not.throwError()
+    })
+    it.skip('delete row', function (done) {
+      zoho.delete(process.env.ZOHO_TABLE, where, done)
+    })
+  })
   describe('handle error', function () {
     var zoho = new ZohoReports(ZOHO_OPTS)
     describe('error handling from error status code', function () {
