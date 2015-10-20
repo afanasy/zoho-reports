@@ -1,5 +1,6 @@
 var
   ROOT_URL = 'https://reportsapi.zoho.com',
+  _ = require('underscore'),
   request = require('request')
 
 function ZohoReports(opts) {
@@ -11,7 +12,9 @@ function ZohoReports(opts) {
 }
 
 ZohoReports.prototype.insert = insert
+ZohoReports.prototype.update = update
 ZohoReports.prototype.buildUrl = buildUrl
+ZohoReports.prototype.buildCriteria = buildCriteria
 ZohoReports.prototype.handleError = handleError
 
 function insert(table, data, done) {
@@ -26,6 +29,33 @@ function insert(table, data, done) {
     url = self.buildUrl({
       table: table,
       action: 'insert'
+    }),
+    opts = {
+      url: url,
+      form: data,
+      method: 'post'
+    }
+  request(opts, self.handleError(done))
+}
+
+function update(table, where, data, done) {
+  if (!table)
+    return done(new Error('You need to pass `table` name parameter.'))
+  if (arguments.length === 3) {
+    done = data
+    data = where
+    where = {}
+  }
+  if (!data)
+    return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
+  if (!done)
+    done = function(){}
+  data = _.extend(buildCriteria(where), data)
+  var
+    self = this,
+    url = self.buildUrl({
+      table: table,
+      action: 'update'
     }),
     opts = {
       url: url,
@@ -53,6 +83,22 @@ function buildUrl(opts) {
     'authtoken=' + self.opts.authtoken
 }
 
+
+function buildCriteria(where) {
+  // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
+  //  https://zohoreportsapi.wiki.zoho.com/Applying-Filters.html
+  if (!Object.keys(where).length)
+    return {}
+  var criteria = []
+  _.each(where, function (value, column) {
+    criteria.push('("' + column + '"=\'' +  value + '\')')
+  })
+  criteria = criteria.length === 1 ? criteria[0] : '(' + criteria.join(' and ')+ ')'
+  return {
+    ZOHO_CRITERIA: criteria
+  }
+}
+
 function handleError(done) {
   return function (err, res, body) {
     var output
@@ -76,7 +122,8 @@ module.exports = ZohoReports
 
 function getZohoAction(action) {
   var actions = {
-    insert: 'ADDROW'
+    insert: 'ADDROW',
+    update: 'UPDATE'
   }
   return actions[action]
 }

@@ -35,3 +35,8 @@ Update rows (click [here](https://zohoreportsapi.wiki.zoho.com/Updating-Data.htm
 
 ## .delete(String table, Object where, Function done)
 Delete rows (click [here](https://zohoreportsapi.wiki.zoho.com/Deleting-Data.html) for more details).
+
+# Testing
+- copy `sample.env` as `.env`.
+- fill the `.env` file with you credentials
+- run `npm test`

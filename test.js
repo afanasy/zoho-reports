@@ -25,7 +25,7 @@ describe('zoho-report module', function () {
       expect(zoho.opts).to.eql(opts)
     })
   })
-  describe('insert row', function () {
+  describe('row insertion', function () {
     var zoho = new ZohoReports(ZOHO_OPTS)
     it('throws error when `table` parameter is not provided', function () {
       expect(zoho.insert).withArgs().to.throwError()
@@ -43,11 +43,29 @@ describe('zoho-report module', function () {
     })
     it.skip('insert row', function (done) {
       var data = {fname: 'tester', lname: 'tester'}
-      zoho.insert(process.env.ZOHO_TABLE, data, function (err, res) {
-        if (err) return done(err)
-        console.log(res);
-        done()
-      })
+      zoho.insert(process.env.ZOHO_TABLE, data, done)
+    })
+  })
+  describe('row modification', function () {
+    var
+      zoho = new ZohoReports(ZOHO_OPTS),
+      where = {fname: 'raabb', lname: 'ajam'},
+      data = {id: 4}
+    it('throws error when `table` parameter is not provided', function () {
+      expect(zoho.update).withArgs().to.throwError()
+    })
+    it('throws error when `data` parameter is not provided', function () {
+      expect(zoho.update).withArgs('testtable').to.throwError()
+    })
+    it.skip('doesn\'t throw error when `where` parameter is not provided', function (done) {
+      var data = {id: 5}
+      function test() {
+        zoho.update('testtable', data, done)
+      }
+      expect(test).to.not.throwError()
+    })
+    it.skip('update row', function (done) {
+      zoho.update(process.env.ZOHO_TABLE, where, data, done)
     })
   })
   describe('handle error', function () {
@@ -87,5 +105,11 @@ describe('zoho-report module', function () {
       })
 
     })
+  })
+  describe.skip('url building', function () {
+    // @TODO test url building for complex data
+  })
+  describe.skip('criteria building', function () {
+    // @TODO test criteria building for complex filter
   })
 })
