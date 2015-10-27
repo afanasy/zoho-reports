@@ -25,7 +25,10 @@
     "zoho",
     "report"
   ],
-  "author": "Raabb Ajam <raabbajam@gmail.com>",
+  "author": "Afanasii Kurakin <afanasii@akura.co>",
+  "contributors": [
+    "Raabb Ajam <raabbajam@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/afanasy/zoho-reports/issues"
