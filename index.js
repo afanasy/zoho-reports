@@ -118,6 +118,7 @@ ZohoReports.prototype.buildCriteria = function (where) {
   }
 }
 ZohoReports.prototype.handleError = function (done) {
+  done = _.isFunction(done) ? done : _.noop
   return function (err, res, body) {
     var output
     if (err) return done(err)
@@ -140,7 +141,7 @@ module.exports = ZohoReports
 
 function buildDataImport (data) {
   var type, filename, output, file
-  if (isReadableStream(data)) {
+  if (data instanceof stream.Readable) {
     file = data
     type = path.extname(data.path) === '.csv' ? 'CSV' : 'JSON'
   } else {
@@ -168,10 +169,4 @@ function buildDataImport (data) {
     ZOHO_ON_IMPORT_ERROR: 'ABORT',
   }
   return output
-}
-
-function isReadableStream (obj) {
-  return obj instanceof stream.Stream &&
-    typeof (obj._read === 'function') &&
-    typeof (obj._readableState === 'object')
 }
