@@ -1,18 +1,20 @@
-require('dotenv').load()
 var
   expect = require('expect.js'),
   fs = require('fs'),
   _ = require('underscore'),
   ZohoReports = require('../'),
-  server = require('./server'),
-  opts = {
+  server = require('./server')
+describe('zoho-report module with real server', function () {
+  require('dotenv').load({path: __dirname + '/../.env', silent: true})
+  if (!process.env.ZOHO_AUTH_TOKEN) {
+    return
+  }
+  this.timeout(10 * 1000)
+  var opts = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
     db: process.env.ZOHO_DB
   }
-
-describe('zoho-report module with real server', function () {
-  this.timeout(10 * 1000)
   describe('basic initialization', function () {
     it('always called using new', function () {
       var zoho = ZohoReports(opts)
