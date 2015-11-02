@@ -22,7 +22,9 @@ describe('zoho-report module', function () {
     it('sets opts property on construction', function () {
       var
         zoho = new ZohoReports(opts)
-      expect(zoho.opts).to.eql(opts)
+      expect(zoho.user).to.eql(opts.user)
+      expect(zoho.authtoken).to.eql(opts.authtoken)
+      expect(zoho.db).to.eql(opts.db)
     })
   })
   describe('row insertion', function () {

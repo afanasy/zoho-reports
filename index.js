@@ -1,16 +1,17 @@
 var
-  ROOT_URL = 'https://reportsapi.zoho.com',
   _ = require('underscore'),
   path = require('path'),
   request = require('request'),
-  stream = require('stream'),
-  noop = function(){}
+  stream = require('stream')
+
 function ZohoReports (opts) {
   if (this.constructor !== ZohoReports)
     return new ZohoReports(opts)
   if (!opts.user || !opts.authtoken || !opts.db)
     throw (new Error('Please specify zoho username, authtoken and db'))
-  this.opts = opts
+  _.defaults(this, opts, {
+    url: 'https://reportsapi.zoho.com'
+  })
 }
 
 ZohoReports.prototype.insert = insert
@@ -27,7 +28,7 @@ function insert (table, data, done) {
   if (!data)
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
-    done = noop
+    done = _.noop
   var
     self = this,
     url = self.buildUrl({
@@ -53,7 +54,7 @@ function update (table, where, data, done) {
   if (!data)
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
-    done = noop
+    done = _.noop
   data = _.extend(buildCriteria(where), data)
   var
     self = this,
@@ -96,7 +97,7 @@ function importFn (table, data, done) {
   if (!data)
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
-    done = noop
+    done = _.noop
     var
       self = this,
       url = self.buildUrl({
@@ -121,12 +122,12 @@ function buildUrl (opts) {
   var
     self = this,
     action = getZohoAction(opts.action)
-  return ROOT_URL + '/api/' +
-    [ self.opts.user, self.opts.db, opts.table].join('/') +
+  return self.url + '/api/' +
+    [ self.user, self.db, opts.table].join('/') +
     '?' +
     'ZOHO_ACTION=' + action +
     '&ZOHO_OUTPUT_FORMAT=JSON&ZOHO_ERROR_FORMAT=JSON&ZOHO_API_VERSION=1.0&' +
-    'authtoken=' + self.opts.authtoken
+    'authtoken=' + self.authtoken
 }
 
 function buildCriteria (where) {
