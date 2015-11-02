@@ -2,7 +2,7 @@ require('dotenv').load()
 var
   expect = require('expect.js'),
   fs = require('fs'),
-  ZohoReports = require('./'),
+  ZohoReports = require('../'),
   opts = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
