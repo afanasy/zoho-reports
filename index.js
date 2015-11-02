@@ -14,15 +14,7 @@ function ZohoReports (opts) {
   })
 }
 
-ZohoReports.prototype.insert = insert
-ZohoReports.prototype.update = update
-ZohoReports.prototype.delete = deleteFn
-ZohoReports.prototype.import = importFn
-ZohoReports.prototype.buildUrl = buildUrl
-ZohoReports.prototype.buildCriteria = buildCriteria
-ZohoReports.prototype.handleError = handleError
-
-function insert (table, data, done) {
+ZohoReports.prototype.insert = function (table, data, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (!data)
@@ -42,10 +34,9 @@ function insert (table, data, done) {
     }
   request(opts, self.handleError(done))
 }
-
-function update (table, where, data, done) {
+ZohoReports.prototype.update = function (table, where, data, done) {
   if (!table)
-    return done(new Error('You need to pass `table` name parameter.'))
+    return done(new Error('You need to pass ` name parameter.'))
   if (arguments.length === 3) {
     done = data
     data = where
@@ -55,7 +46,7 @@ function update (table, where, data, done) {
     return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
   if (!done)
     done = _.noop
-  data = _.extend(buildCriteria(where), data)
+  data = _.extend(this.buildCriteria(where), data)
   var
     self = this,
     url = self.buildUrl({
@@ -69,8 +60,7 @@ function update (table, where, data, done) {
     }
   request(opts, self.handleError(done))
 }
-
-function deleteFn (table, where, done) {
+ZohoReports.prototype.delete = function (table, where, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (typeof arguments[1] == 'function') {
@@ -85,13 +75,12 @@ function deleteFn (table, where, done) {
     }),
     opts = {
       url: url,
-      form: buildCriteria(where),
+      form: self.buildCriteria(where),
       method: 'post'
     }
   request(opts, self.handleError(done))
 }
-
-function importFn (table, data, done) {
+ZohoReports.prototype.import = function (table, data, done) {
   if (!table)
     return done(new Error('You need to pass `table` name parameter.'))
   if (!data)
@@ -111,8 +100,7 @@ function importFn (table, data, done) {
       }
       request(opts, self.handleError(done))
 }
-
-function buildUrl (opts) {
+ZohoReports.prototype.buildUrl = function (opts) {
   // https://reportsapi.zoho.com/api/abc@zoho.com/EmployeeDB/EmployeeDetails?
   //  ZOHO_ACTION=ADDROW&
   //  ZOHO_OUTPUT_FORMAT=XML&
@@ -129,8 +117,7 @@ function buildUrl (opts) {
     '&ZOHO_OUTPUT_FORMAT=JSON&ZOHO_ERROR_FORMAT=JSON&ZOHO_API_VERSION=1.0&' +
     'authtoken=' + self.authtoken
 }
-
-function buildCriteria (where) {
+ZohoReports.prototype.buildCriteria = function (where) {
   // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
   //  https://zohoreportsapi.wiki.zoho.com/Applying-Filters.html
   if (!Object.keys(where).length)
@@ -144,6 +131,26 @@ function buildCriteria (where) {
     ZOHO_CRITERIA: criteria
   }
 }
+ZohoReports.prototype.handleError = function (done) {
+  return function (err, res, body) {
+    var output
+    if (err) return done(err)
+    try {
+      output = JSON.parse(body)
+    } catch (e) {
+      ouput = body
+    }
+    if (res.statusCode !== 200) {
+      var err = new Error('API error, ' + res.statusCode)
+      err.code = res.statusCode
+      err.response = output.response
+      return done(err)
+    }
+    return done(null, output)
+  }
+}
+
+module.exports = ZohoReports
 
 function buildDataImport (data) {
   var type, filename, output, file
@@ -176,27 +183,6 @@ function buildDataImport (data) {
   }
   return output
 }
-
-function handleError (done) {
-  return function (err, res, body) {
-    var output
-    if (err) return done(err)
-    try {
-      output = JSON.parse(body)
-    } catch (e) {
-      ouput = body
-    }
-    if (res.statusCode !== 200) {
-      var err = new Error('API error, ' + res.statusCode)
-      err.code = res.statusCode
-      err.response = output.response
-      return done(err)
-    }
-    return done(null, output)
-  }
-}
-
-module.exports = ZohoReports
 
 function getZohoAction (action) {
   var actions = {
