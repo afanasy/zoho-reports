@@ -2,14 +2,16 @@ require('dotenv').load()
 var
   expect = require('expect.js'),
   fs = require('fs'),
+  _ = require('underscore'),
   ZohoReports = require('../'),
+  server = require('./server'),
   opts = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
     db: process.env.ZOHO_DB
   }
 
-describe('zoho-report module', function () {
+describe('zoho-report module with real server', function () {
   this.timeout(10 * 1000)
   describe('basic initialization', function () {
     it('always called using new', function () {
@@ -51,7 +53,7 @@ describe('zoho-report module', function () {
   describe('row modification', function () {
     var
       zoho = new ZohoReports(opts),
-      where = {fname: 'raabb', lname: 'ajam'},
+      where = {fname: 'tester', lname: 'tester'},
       data = {id: 4}
     it('throws error when `table` parameter is not provided', function () {
       expect(zoho.update).withArgs().to.throwError()
@@ -155,13 +157,65 @@ describe('zoho-report module', function () {
   describe('url building', function () {
     // @TODO test url building for complex data
   })
-  describe.only('criteria building', function () {
-    // @TODO test criteria building for complex filter
+  describe('criteria building', function () {
     it('handles basic criteria', function () {
       var
         query = {fname: 'raabb', lname: 'ajam'},
         criteria = ZohoReports.buildCriteria(query)
       expect(criteria).to.eql('`fname` = \'raabb\' and `lname` = \'ajam\'')
+    })
+  })
+})
+
+describe('zoho-report with mock server', function () {
+  var
+    opts = {
+      url: 'http://localhost:3000',
+      user: 'raabbajam',
+      authtoken: 'testtoken',
+      db: 'testdb',
+    },
+    zoho = ZohoReports(opts),
+    app
+
+  before(function (done) {
+    app = server.listen(3000, function () {
+      done()
+    })
+  })
+
+  after(function (done) {
+    app.close(done)
+  })
+
+  it('adds data', function (done) {
+    var data = {fname: 'Raabb'}
+    zoho.insert('testtable', data, function (err, result) {
+      if (err) return done(err)
+      var serverData = server.zohoData.raabbajam.testdb.testtable
+      expect(_.last(serverData)).to.eql(data)
+      done()
+    })
+  })
+  it('modifies data', function (done) {
+    var
+      where = {fname: 'Raabb'}
+      data = {modified: true}
+    zoho.update('testtable', where, data, function (err, result) {
+      if (err) return done(err)
+      var serverData = server.zohoData.raabbajam.testdb.testtable
+      expect(_.last(serverData).modified).to.eql(true)
+      done()
+    })
+  })
+  it('removes data', function (done) {
+    var
+      where = {fname: 'Raabb'}
+    zoho.delete('testtable', where, function (err, result) {
+      if (err) return done(err)
+      var serverData = server.zohoData.raabbajam.testdb.testtable
+      expect(serverData.length).to.eql(0)
+      done()
     })
   })
 })
