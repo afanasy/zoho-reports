@@ -2,7 +2,13 @@ var
   _ = require('underscore'),
   path = require('path'),
   request = require('request'),
-  stream = require('stream')
+  stream = require('stream'),
+  zohoAction = {
+    insert: 'ADDROW',
+    update: 'UPDATE',
+    delete: 'DELETE',
+    import: 'IMPORT'
+  }
 
 function ZohoReports (opts) {
   if (this.constructor !== ZohoReports)
@@ -89,7 +95,7 @@ ZohoReports.prototype.buildUrl = function (opts) {
   //  ZOHO_API_VERSION=1.0
   var
     self = this,
-    action = getZohoAction(opts.action)
+    action = zohoAction[opts.action]
   return self.url + '/api/' +
     [ self.user, self.db, opts.table].join('/') +
     '?' +
@@ -162,16 +168,6 @@ function buildDataImport (data) {
     ZOHO_ON_IMPORT_ERROR: 'ABORT',
   }
   return output
-}
-
-function getZohoAction (action) {
-  var actions = {
-    insert: 'ADDROW',
-    update: 'UPDATE',
-    delete: 'DELETE',
-    import: 'IMPORT'
-  }
-  return actions[action]
 }
 
 function isReadableStream (obj) {
