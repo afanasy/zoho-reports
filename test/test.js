@@ -1,20 +1,28 @@
+
 var
+  ZohoCloudSql = require('zoho-cloud-sql')
   expect = require('expect.js'),
   fs = require('fs'),
   _ = require('underscore'),
   ZohoReports = require('../'),
   server = require('./server')
+
 describe('zoho-report module with real server', function () {
   require('dotenv').load({path: __dirname + '/../.env', silent: true})
   if (!process.env.ZOHO_AUTH_TOKEN) {
-    return
+      return
   }
+
   this.timeout(10 * 1000)
   var opts = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
     db: process.env.ZOHO_DB
   }
+  before(function (done) {
+    var zoho = ZohoReports(opts)
+    zoho.delete(process.env.ZOHO_TABLE, done)
+  })
   describe('basic initialization', function () {
     it('always called using new', function () {
       var zoho = ZohoReports(opts)
@@ -45,11 +53,18 @@ describe('zoho-report module with real server', function () {
         zoho.insert('testtable', data)
       }
       expect(test).to.not.throwError()
-      // expect(zoho.insert).withArgs('testtable', data).to.not.throwError()
     })
-    it('insert row', function (done) {
-      var data = {fname: 'tester', lname: 'tester'}
-      zoho.insert(process.env.ZOHO_TABLE, data, done)
+    it.only('insert row', function (done) {
+      var data = {fname: 'tester', lname: 'tester', id: 1}
+      zoho.insert(process.env.ZOHO_TABLE, data, function () {
+        var db = new ZohoCloudSql(opts)
+        db.query('select * from ' + process.env.ZOHO_TABLE + ' ', function (err, data) {
+          if (err) return done(err)
+          var rows = data.rows
+          expect(rows.length).to.eql(1)
+          done()
+        })
+      })
     })
   })
   describe('row modification', function () {
@@ -83,7 +98,7 @@ describe('zoho-report module with real server', function () {
     })
     it('doesn\'t throw error when `where` parameter is not provided', function (done) {
       function test() {
-        zoho.delete('testtable', done)
+        zoho.delete(process.env.ZOHO_TABLE, done)
       }
       expect(test).to.not.throwError()
     })
