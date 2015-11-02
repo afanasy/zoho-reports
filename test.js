@@ -2,8 +2,8 @@ require('dotenv').load()
 var
   expect = require('expect.js'),
   fs = require('fs'),
-  ZohoReports = require('./main'),
-  ZOHO_OPTS = {
+  ZohoReports = require('./'),
+  opts = {
     user: process.env.ZOHO_USERNAME,
     authtoken: process.env.ZOHO_AUTH_TOKEN,
     db: process.env.ZOHO_DB
@@ -13,7 +13,7 @@ describe('zoho-report module', function () {
   this.timeout(10 * 1000)
   describe('basic initialization', function () {
     it('always called using new', function () {
-      var zoho = ZohoReports(ZOHO_OPTS)
+      var zoho = ZohoReports(opts)
       expect(zoho.constructor).to.be(ZohoReports)
     })
     it('throws error when required parameters are not provided', function () {
@@ -21,13 +21,12 @@ describe('zoho-report module', function () {
     })
     it('sets opts property on construction', function () {
       var
-        opts = ZOHO_OPTS,
         zoho = new ZohoReports(opts)
       expect(zoho.opts).to.eql(opts)
     })
   })
   describe('row insertion', function () {
-    var zoho = new ZohoReports(ZOHO_OPTS)
+    var zoho = new ZohoReports(opts)
     it('throws error when `table` parameter is not provided', function () {
       expect(zoho.insert).withArgs().to.throwError()
     })
@@ -49,7 +48,7 @@ describe('zoho-report module', function () {
   })
   describe('row modification', function () {
     var
-      zoho = new ZohoReports(ZOHO_OPTS),
+      zoho = new ZohoReports(opts),
       where = {fname: 'raabb', lname: 'ajam'},
       data = {id: 4}
     it('throws error when `table` parameter is not provided', function () {
@@ -71,7 +70,7 @@ describe('zoho-report module', function () {
   })
   describe('row deletion', function () {
     var
-      zoho = new ZohoReports(ZOHO_OPTS),
+      zoho = new ZohoReports(opts),
       where = {fname: 'tester', lname: 'tester'}
     it('throws error when `table` parameter is not provided', function () {
       expect(zoho.delete).withArgs().to.throwError()
@@ -88,7 +87,7 @@ describe('zoho-report module', function () {
   })
   describe('importing bulk data', function () {
     var
-      zoho = new ZohoReports(ZOHO_OPTS),
+      zoho = new ZohoReports(opts),
       json = [
         {fname: 'tester', lname: 'tester', id: 1},
         {fname: 'tester', lname: 'tester', id: 2},
@@ -114,7 +113,7 @@ describe('zoho-report module', function () {
     })
   })
   describe('handle error', function () {
-    var zoho = new ZohoReports(ZOHO_OPTS)
+    var zoho = new ZohoReports(opts)
     describe('error handling from error status code', function () {
       it('handles error on not found table', function (done) {
         zoho.insert('not_found_table', {}, function (err, data) {
