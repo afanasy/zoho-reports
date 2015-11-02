@@ -15,12 +15,6 @@ function ZohoReports (opts) {
 }
 
 ZohoReports.prototype.insert = function (table, data, done) {
-  if (!table)
-    return done(new Error('You need to pass `table` name parameter.'))
-  if (!data)
-    return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
-  if (!done)
-    done = _.noop
   var
     self = this,
     url = self.buildUrl({
@@ -35,17 +29,11 @@ ZohoReports.prototype.insert = function (table, data, done) {
   request(opts, self.handleError(done))
 }
 ZohoReports.prototype.update = function (table, where, data, done) {
-  if (!table)
-    return done(new Error('You need to pass ` name parameter.'))
   if (arguments.length === 3) {
     done = data
     data = where
     where = {}
   }
-  if (!data)
-    return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
-  if (!done)
-    done = _.noop
   data = _.extend(this.buildCriteria(where), data)
   var
     self = this,
@@ -61,8 +49,6 @@ ZohoReports.prototype.update = function (table, where, data, done) {
   request(opts, self.handleError(done))
 }
 ZohoReports.prototype.delete = function (table, where, done) {
-  if (!table)
-    return done(new Error('You need to pass `table` name parameter.'))
   if (typeof arguments[1] == 'function') {
     done = where
     where = {}
@@ -81,12 +67,6 @@ ZohoReports.prototype.delete = function (table, where, done) {
   request(opts, self.handleError(done))
 }
 ZohoReports.prototype.import = function (table, data, done) {
-  if (!table)
-    return done(new Error('You need to pass `table` name parameter.'))
-  if (!data)
-    return done(new Error('You need to have atleast one column for INSERT or UPDATE action'))
-  if (!done)
-    done = _.noop
     var
       self = this,
       url = self.buildUrl({
