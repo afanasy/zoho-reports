@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "description": "zoho-report",
   "dependencies": {
-    "db3": "^2.0.1",
-    "dotenv": "^1.2.0",
-    "expect.js": "^0.3.1",
-    "request": "^2.65.0",
-    "underscore": "^1.8.3"
+    "db3": "2.0.1",
+    "dotenv": "1.2.0",
+    "expect.js": "0.3.1",
+    "request": "2.65.0",
+    "underscore": "1.8.3"
   },
   "devDependencies": {
-    "dotenv": "^1.2.0",
-    "expect.js": "^0.3.1",
-    "mocha": "^2.3.3"
+    "dotenv": "1.2.0",
+    "expect.js": "0.3.1",
+    "mocha": "2.3.3"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -w test"
