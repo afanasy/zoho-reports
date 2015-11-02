@@ -4,6 +4,7 @@ var
   request = require('request'),
   stream = require('stream'),
   qs = require('qs'),
+  db3Where = require('db3-where'),
   zohoAction = {
     insert: 'ADDROW',
     update: 'UPDATE',
@@ -41,7 +42,9 @@ ZohoReports.prototype.update = function (table, where, data, done) {
     data = where
     where = {}
   }
-  data = _.extend(this.buildCriteria(where), data)
+  data = _.extend({
+    ZOHO_CRITERIA: ZohoReports.buildCriteria(where)
+  }, data)
   var
     self = this,
     url = self.buildUrl({
@@ -68,7 +71,7 @@ ZohoReports.prototype.delete = function (table, where, done) {
     }),
     opts = {
       url: url,
-      form: self.buildCriteria(where),
+      form: {ZOHO_CRITERIA: ZohoReports.buildCriteria(where)},
       method: 'post'
     }
   request(opts, self.handleError(done))
@@ -109,19 +112,8 @@ ZohoReports.prototype.buildUrl = function (opts) {
     '?' + query
 
 }
-ZohoReports.prototype.buildCriteria = function (where) {
-  // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
-  //  https://zohoreportsapi.wiki.zoho.com/Applying-Filters.html
-  if (!Object.keys(where).length)
-    return {}
-  var criteria = []
-  _.each(where, function (value, column) {
-    criteria.push('("' + column + '"=\'' +  value + '\')')
-  })
-  criteria = criteria.length === 1 ? criteria[0] : '(' + criteria.join(' and ')+ ')'
-  return {
-    ZOHO_CRITERIA: criteria
-  }
+ZohoReports.buildCriteria = function (where) {
+  return db3Where.query(where)
 }
 ZohoReports.prototype.handleError = function (done) {
   done = _.isFunction(done) ? done : _.noop

@@ -4,6 +4,7 @@
   "description": "zoho-report",
   "dependencies": {
     "db3": "2.0.1",
+    "db3-where": "github:afanasy/db3-where",
     "dotenv": "1.2.0",
     "expect.js": "0.3.1",
     "request": "2.65.0",

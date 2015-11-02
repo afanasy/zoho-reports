@@ -155,7 +155,13 @@ describe('zoho-report module', function () {
   describe('url building', function () {
     // @TODO test url building for complex data
   })
-  describe('criteria building', function () {
+  describe.only('criteria building', function () {
     // @TODO test criteria building for complex filter
+    it('handles basic criteria', function () {
+      var
+        query = {fname: 'raabb', lname: 'ajam'},
+        criteria = ZohoReports.buildCriteria(query)
+      expect(criteria).to.eql('`fname` = \'raabb\' and `lname` = \'ajam\'')
+    })
   })
 })
