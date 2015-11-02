@@ -3,6 +3,7 @@ var
   path = require('path'),
   request = require('request'),
   stream = require('stream'),
+  qs = require('qs'),
   zohoAction = {
     insert: 'ADDROW',
     update: 'UPDATE',
@@ -95,13 +96,18 @@ ZohoReports.prototype.buildUrl = function (opts) {
   //  ZOHO_API_VERSION=1.0
   var
     self = this,
-    action = zohoAction[opts.action]
+    action = zohoAction[opts.action],
+    query = qs.stringify({
+      ZOHO_ACTION: action,
+      ZOHO_OUTPUT_FORMAT: 'JSON',
+      ZOHO_ERROR_FORMAT: 'JSON',
+      ZOHO_API_VERSION: '1.0',
+      authtoken:self.authtoken
+    })
   return self.url + '/api/' +
     [ self.user, self.db, opts.table].join('/') +
-    '?' +
-    'ZOHO_ACTION=' + action +
-    '&ZOHO_OUTPUT_FORMAT=JSON&ZOHO_ERROR_FORMAT=JSON&ZOHO_API_VERSION=1.0&' +
-    'authtoken=' + self.authtoken
+    '?' + query
+
 }
 ZohoReports.prototype.buildCriteria = function (where) {
   // @TODO: handle $and, $or, relational operator (> , < . LIKE, etc)
