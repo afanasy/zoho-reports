@@ -4,8 +4,16 @@ var
   bodyParser = require('body-parser'),
   app = module.exports = express()
 
-app.zohoData = {}
-app.use(bodyParser.urlencoded({ extended: false }))
+app.zohoData = {
+  raabbajam: {
+    testdb: {
+      testtable: [
+        {fname: 'Raabb'}
+      ]
+    }
+  }
+}
+app.use(bodyParser.urlencoded({extended: false}))
 app.all('/api/:user/:db/:table', function (req, res) {
   var
     userData = app.zohoData[req.params.user] = app.zohoData[req.params.user] || {},
@@ -21,9 +29,8 @@ app.all('/api/:user/:db/:table', function (req, res) {
       where[data.match(/\`.+\`/)[0].replace(/\`/g, '')] = data.match(/\'.+\'/)[0].replace(/\'/g, '')
     })
     tableData.forEach(function (row) {
-      if (_.isMatch(row, where)) {
-        row = _.extend(row, data)
-      }
+      if (_.isMatch(row, where))
+        row = _.extend(row, _.omit(req.body, 'ZOHO_CRITERIA'))
     })
   } else if (req.query.ZOHO_ACTION == 'DELETE') {
     var

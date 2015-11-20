@@ -1,4 +1,4 @@
-Javascript interface for [Zoho Reports](https://zohoreportsapi.wiki.zoho.com/).
+Node client for [Zoho Reports](https://zohoreportsapi.wiki.zoho.com/).
 
 ## Init
 ```js
@@ -13,10 +13,16 @@ var zoho = new ZohoReports({
 ## .insert(String table, Object row, Function done)
 Insert a row (click [here](https://zohoreportsapi.wiki.zoho.com/Adding-Single-Row.html) for more details).
 ```js
-zoho.addRow('fruit', {id: 1, name: 'Apple'}, function (err, data) {
+zoho.insert('fruit', {id: 1, name: 'Apple'}, function (err, data) {
   console.log('done')
 })
 ```
+
+## .update(String table, Object where, Function done)
+Update rows (click [here](https://zohoreportsapi.wiki.zoho.com/Updating-Data.html) for more details).
+
+## .delete(String table, Object where, Function done)
+Delete rows (click [here](https://zohoreportsapi.wiki.zoho.com/Deleting-Data.html) for more details).
 
 ## .import
 Import bulk data (click [here](https://zohoreportsapi.wiki.zoho.com/importing-bulk-data.html) for more details).
@@ -29,14 +35,3 @@ Imports data from stream.
 
 ### .import(String table, Array data, Function done)
 Imports data from array of objects.
-
-## .update(String table, Object where, Function done)
-Update rows (click [here](https://zohoreportsapi.wiki.zoho.com/Updating-Data.html) for more details).
-
-## .delete(String table, Object where, Function done)
-Delete rows (click [here](https://zohoreportsapi.wiki.zoho.com/Deleting-Data.html) for more details).
-
-# Testing
-- copy `sample.env` as `.env`.
-- fill the `.env` file with you credentials
-- run `npm test`

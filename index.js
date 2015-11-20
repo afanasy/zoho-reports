@@ -3,7 +3,6 @@ var
   path = require('path'),
   request = require('request'),
   stream = require('stream'),
-  qs = require('qs'),
   db3Where = require('db3-where')
 
 var ZohoReports = module.exports = function (config) {
@@ -39,8 +38,9 @@ ZohoReports.prototype.request = function (d) {
     url: this.url + [this.user, this.db, d.table].join('/')
   }
   request.qs = _.extend({ZOHO_ACTION: d.action}, _.pick(this, ['ZOHO_OUTPUT_FORMAT', 'ZOHO_ERROR_FORMAT', 'ZOHO_API_VERSION', 'authtoken']))
-  if (_.size(d.where))
-    request.qs.ZOHO_CRITERIA = db3Where(d.ZOHO_CRITERIA)
+  d.data = d.data || {}
+  if (!_.isUndefined(d.where))
+    d.data.ZOHO_CRITERIA = db3Where.query(d.where)
   if (d.action == 'IMPORT') {
     config.formData = _.pick(this, [
       'ZOHO_IMPORT_FILETYPE',
@@ -74,7 +74,7 @@ ZohoReports.prototype.update = function (table, where, data, done) {
   if (arguments.length === 3) {
     done = data
     data = where
-    where = {}
+    where = undefined
   }
   request(this.request({table: table, action: 'UPDATE', where: where, data: data}), this.done(done))
 }
