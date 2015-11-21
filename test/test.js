@@ -5,7 +5,7 @@ var
   fs = require('fs'),
   _ = require('underscore'),
   ZohoReports = require('../'),
-  zoho = new ZohoReports({url: 'http://localhost:3000/api/',
+  zoho = new ZohoReports({url: 'http://localhost:3000/api',
     user: 'raabbajam',
     authtoken: 'testtoken',
     db: 'testdb',

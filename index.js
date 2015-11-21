@@ -1,8 +1,9 @@
 var
   _ = require('underscore'),
   path = require('path'),
+  fs = require('fs'),
   request = require('request'),
-  stream = require('stream'),
+  isStream = require('is-stream'),
   db3Where = require('db3-where')
 
 var ZohoReports = module.exports = function (config) {
@@ -35,14 +36,14 @@ var ZohoReports = module.exports = function (config) {
 ZohoReports.prototype.request = function (d) {
   var request = {
     method: 'POST',
-    url: this.url + [this.user, this.db, d.table].join('/')
+    url: this.url + '/' + [this.user, this.db, d.table].join('/')
   }
   request.qs = _.extend({ZOHO_ACTION: d.action}, _.pick(this, ['ZOHO_OUTPUT_FORMAT', 'ZOHO_ERROR_FORMAT', 'ZOHO_API_VERSION', 'authtoken']))
   d.data = d.data || {}
   if (!_.isUndefined(d.where))
     d.data.ZOHO_CRITERIA = db3Where.query(d.where)
   if (d.action == 'IMPORT') {
-    config.formData = _.pick(this, [
+    request.formData = _.pick(this, [
       'ZOHO_IMPORT_FILETYPE',
       'ZOHO_IMPORT_TYPE',
       'ZOHO_AUTO_IDENTIFY',
@@ -56,10 +57,14 @@ ZohoReports.prototype.request = function (d) {
       'ZOHO_CREATE_TABLE',
       'ZOHO_DATE_FORMAT'
     ])
+    request.formData = _.mapObject(request.formData, function (d) {return String(d)})
+    request.formData.ZOHO_FILE = {options: {filename: 'data.' + this.ZOHO_IMPORT_FILETYPE}}
     if (_.isString(d.data))
-      d.data = fs.createReadStream(d.data)
-    if (d.data instanceof stream.Readable)
-      config.formData.ZOHO_FILE = d.data
+      request.formData.ZOHO_FILE.value = fs.createReadStream(d.data)
+    if (isStream.readable(d.data))
+      request.formData.ZOHO_FILE.value = d.data
+    if (_.isArray(d.data))
+      request.formData.ZOHO_FILE.value = JSON.stringify(d.data)
   }
   else
     request.form = d.data
@@ -82,7 +87,7 @@ ZohoReports.prototype.update = function (table, where, data, done) {
 ZohoReports.prototype.delete = function (table, where, done) {
   if (_.isFunction(where)) {
     done = where
-    where = {}
+    where = undefined
   }
   request(this.request({table: table, action: 'DELETE', where: where}), this.done(done))
 }
@@ -93,10 +98,11 @@ ZohoReports.prototype.import = function (table, data, done) {
 
 ZohoReports.prototype.done = function (done) {
   done = _.isFunction(done)? done: _.noop
-  return function (err, res, body) {
+  return function (err, res, data) {
+    data = data && data.replace(/\\'/g, "'")
     if (err)
       return done(err)
-    try {body = JSON.parse(body)} catch (e) {return done(e)}
-    done(null, body)
+    try {data = JSON.parse(data)} catch (e) {return done(e)}
+    done(data.response.error, data.response.result)
   }
 }
