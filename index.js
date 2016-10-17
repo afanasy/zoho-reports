@@ -1,6 +1,5 @@
 var
   _ = require('underscore'),
-  path = require('path'),
   fs = require('fs'),
   request = require('request'),
   isStream = require('is-stream'),
@@ -20,8 +19,6 @@ var ZohoReports = module.exports = function (config) {
     ZOHO_API_VERSION: '1.0',
     ZOHO_IMPORT_FILETYPE: 'JSON',
     ZOHO_IMPORT_TYPE: 'APPEND',
-    ZOHO_AUTO_IDENTIFY: true,
-    ZOHO_CREATE_TABLE: false,
     ZOHO_ON_IMPORT_ERROR: 'ABORT',
     ZOHO_MATCHING_COLUMNS: 'id',
     ZOHO_AUTO_IDENTIFY: false,
