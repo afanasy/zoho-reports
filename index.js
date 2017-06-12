@@ -96,6 +96,10 @@ ZohoReports.prototype.import = function (table, data, done) {
   request(this.request({table: table, action: 'IMPORT', data: data}), this.done(done))
 }
 
+ZohoReports.prototype.export = function (table, done) {
+  request(this.request({table: table, action: 'EXPORT'}), this.done(done))
+}
+
 ZohoReports.prototype.done = function (done) {
   done = _.isFunction(done)? done: _.noop
   return function (err, res, data) {
