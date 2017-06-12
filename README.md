@@ -35,3 +35,16 @@ Imports data from stream.
 
 ### .import(String table, Array data, Function done)
 Imports data from array of objects.
+
+## .export(String table, Function done)
+Export bulk data. Works for Tables and Reports.
+
+```js
+zoho.export('fruit', (err, data) => {
+  if (err) {
+    console.log('\nerror: ', err)
+  } else {
+    console.log('data output:', data)
+  }
+})
+```
