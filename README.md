@@ -25,7 +25,7 @@ Update rows (click [here](https://zohoreportsapi.wiki.zoho.com/Updating-Data.htm
 Delete rows (click [here](https://zohoreportsapi.wiki.zoho.com/Deleting-Data.html) for more details).
 
 ## .import
-Import bulk data (click [here](https://zohoreportsapi.wiki.zoho.com/importing-bulk-data.html) for more details).
+Import bulk data (click [here](https://www.zoho.com/reports/api/#import-data) for more details).
 
 ### .import(String table, String csv, Function done)
 Imports data from csv string.
@@ -36,15 +36,14 @@ Imports data from stream.
 ### .import(String table, Array data, Function done)
 Imports data from array of objects.
 
-## .export(String table, Function done)
-Export bulk data. Works for Tables and Reports.
+## .export
+Export bulk data (click [here](https://www.zoho.com/reports/api/#export-data) for more details).
+
+### .export(String table, Function done)
+Export data for Tables and Reports.
 
 ```js
-zoho.export('fruit', (err, data) => {
-  if (err) {
-    console.log('\nerror: ', err)
-  } else {
-    console.log('data output:', data)
-  }
+zoho.export('fruit', function (err, data) {
+  console.log('done')
 })
 ```
