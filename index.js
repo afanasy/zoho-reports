@@ -1,9 +1,7 @@
-var
-  _ = require('underscore'),
-  fs = require('fs'),
-  request = require('request'),
-  isStream = require('is-stream'),
-  db3Where = require('db3-where')
+var _ = require('underscore')
+var fs = require('fs')
+var superagent = require('superagent')
+var db3Where = require('db3-where')
 
 var ZohoReports = module.exports = function (config) {
   _.defaults(this, config, {
@@ -30,46 +28,43 @@ var ZohoReports = module.exports = function (config) {
   })
 }
 
-ZohoReports.prototype.request = function (d) {
-  var request = {
-    method: 'POST',
-    url: this.url + '/' + [this.user, this.db, d.table].join('/')
-  }
-  request.qs = _.extend({ZOHO_ACTION: d.action}, _.pick(this, ['ZOHO_OUTPUT_FORMAT', 'ZOHO_ERROR_FORMAT', 'ZOHO_API_VERSION', 'authtoken']))
+ZohoReports.prototype.agent = function (d) {
+  var agent = superagent.
+    post(this.url + '/' + [this.user, this.db, d.table].join('/')).
+    query(_.extend({ZOHO_ACTION: d.action}, _.pick(this, ['ZOHO_OUTPUT_FORMAT', 'ZOHO_ERROR_FORMAT', 'ZOHO_API_VERSION', 'authtoken']))).
+    buffer()
+
   d.data = d.data || {}
   if (!_.isUndefined(d.where))
     d.data.ZOHO_CRITERIA = db3Where.query(d.where)
-  if (d.action == 'IMPORT') {
-    request.formData = _.pick(this, [
-      'ZOHO_IMPORT_FILETYPE',
-      'ZOHO_IMPORT_TYPE',
-      'ZOHO_AUTO_IDENTIFY',
-      'ZOHO_CREATE_TABLE',
-      'ZOHO_ON_IMPORT_ERROR',
-      'ZOHO_MATCHING_COLUMNS',
-      'ZOHO_AUTO_IDENTIFY',
-      'ZOHO_COMMENTCHAR',
-      'ZOHO_DELIMITER',
-      'ZOHO_QUOTED',
-      'ZOHO_CREATE_TABLE',
-      'ZOHO_DATE_FORMAT'
-    ])
-    request.formData = _.mapObject(request.formData, function (d) {return String(d)})
-    request.formData.ZOHO_FILE = {options: {filename: 'data.' + this.ZOHO_IMPORT_FILETYPE}}
-    if (_.isString(d.data))
-      request.formData.ZOHO_FILE.value = fs.createReadStream(d.data)
-    if (isStream.readable(d.data))
-      request.formData.ZOHO_FILE.value = d.data
-    if (_.isArray(d.data))
-      request.formData.ZOHO_FILE.value = JSON.stringify(d.data)
-  }
-  else
-    request.form = d.data
-  return request
+  if (d.action != 'IMPORT')
+    return agent.type('form').send(form)
+  var form = _.pick(this, [
+    'ZOHO_IMPORT_FILETYPE',
+    'ZOHO_IMPORT_TYPE',
+    'ZOHO_AUTO_IDENTIFY',
+    'ZOHO_CREATE_TABLE',
+    'ZOHO_ON_IMPORT_ERROR',
+    'ZOHO_MATCHING_COLUMNS',
+    'ZOHO_AUTO_IDENTIFY',
+    'ZOHO_COMMENTCHAR',
+    'ZOHO_DELIMITER',
+    'ZOHO_QUOTED',
+    'ZOHO_CREATE_TABLE',
+    'ZOHO_DATE_FORMAT'
+  ])
+  agent.field(_.mapObject(form, function (d) {return String(d)}))
+  var filename = 'data.' + this.ZOHO_IMPORT_FILETYPE
+  var file = d.data
+  if (_.isString(file))
+    file = fs.createReadStream(file)
+  if (_.isArray(file))
+    file = Buffer.from(JSON.stringify(file))
+  return agent.attach('ZOHO_FILE', file, filename)
 }
 
 ZohoReports.prototype.insert = function (table, data, done) {
-  request(this.request({table: table, action: 'ADDROW', data: data}), this.done(done))
+  this.agent({table: table, action: 'ADDROW', data: data}).end(this.done(done))
 }
 
 ZohoReports.prototype.update = function (table, where, data, done) {
@@ -78,7 +73,7 @@ ZohoReports.prototype.update = function (table, where, data, done) {
     data = where
     where = undefined
   }
-  request(this.request({table: table, action: 'UPDATE', where: where, data: data}), this.done(done))
+  this.agent({table: table, action: 'UPDATE', where: where, data: data}).end(this.done(done))
 }
 
 ZohoReports.prototype.delete = function (table, where, done) {
@@ -86,23 +81,23 @@ ZohoReports.prototype.delete = function (table, where, done) {
     done = where
     where = undefined
   }
-  request(this.request({table: table, action: 'DELETE', where: where}), this.done(done))
+  this.agent({table: table, action: 'DELETE', where: where}).end(this.done(done))
 }
 
 ZohoReports.prototype.import = function (table, data, done) {
-  request(this.request({table: table, action: 'IMPORT', data: data}), this.done(done))
+  this.agent({table: table, action: 'IMPORT', data: data}).end(this.done(done))
 }
 
 ZohoReports.prototype.export = function (table, done) {
-  request(this.request({table: table, action: 'EXPORT'}), this.done(done))
+  this.agent({table: table, action: 'EXPORT'}).end(this.done(done))
 }
 
 ZohoReports.prototype.done = function (done) {
   done = _.isFunction(done)? done: _.noop
-  return function (err, res, data) {
-    data = data && data.replace(/\\'/g, "'")
+  return function (err, res) {
     if (err)
       return done(err)
+    var data = res.text && res.text.replace(/\\'/g, "'")
     try {data = JSON.parse(data)} catch (e) {return done(e)}
     done(data.response.error, data.response.result)
   }
